@@ -2,8 +2,9 @@
 
 ## About
 
-This project aims to be an efficient, easy to use backend for the RPI tours
-application. It will provide an API to access categories, tours, landmark data,
+This project aims to be an efficient, easy to use backend for the 
+[RPI tours](https://github.com/JohnBehnke/RPI_Tours_iOS) application. 
+It will provide an API to access categories, tours, landmark data,
 waypoints, etc.
 
 It is written in [Scala](https://www.scala-lang.org/) using the 
