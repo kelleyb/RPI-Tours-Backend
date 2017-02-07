@@ -33,7 +33,7 @@ class LandmarkPhotoRepository @Inject()(
    * database
    */
   private class LandmarkPhotosTable(tag: Tag) 
-      extends Table[LandmarkPhoto](tag, "landmarkPhotos") {
+      extends Table[LandmarkPhoto](tag, "landmark_photos") {
     
     /** The landmarkId column, can't be null */
     def landmarkId = column[Long]("landmark_id")

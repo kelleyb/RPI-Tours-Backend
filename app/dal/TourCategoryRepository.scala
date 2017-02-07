@@ -33,7 +33,7 @@ class TourCategoryRepository @Inject()(
    * database
    */
   private class TourCategoriesTable(tag: Tag) 
-      extends Table[TourCategory](tag, "tourCategories") {
+      extends Table[TourCategory](tag, "tour_categories") {
 
     /** The tourId column, can't be null */
     def tourId = column[Long]("tour_id")
