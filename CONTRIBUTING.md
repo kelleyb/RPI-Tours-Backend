@@ -10,6 +10,11 @@ If it's a feature, give an in-depth explanation of what you want the server to
 do, as well as why you think this should be something implemented in the server,
 rather than the client.
 
+Each issue should contain what is called a "Definition of Done", referred to as
+"DoD". This is a measureable deliverable which essentially defines what it means
+to complete an issue. If you're not sure about what the DoD would be, then you
+can label it with "dod-unknown". This should be used sparingly, if at all.
+
 ## Contributing Code
 
 Try to follow the conventions defined in the style guide, as well as those
