@@ -96,4 +96,6 @@ class LandmarkRepository @Inject()(
   def list(): Future[Seq[Landmark]] = db.run {
     landmarks.result
   }
+
+
 }

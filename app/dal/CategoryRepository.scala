@@ -86,4 +86,5 @@ class CategoryRepository @Inject() (
   def list(): Future[Seq[Category]] = db.run {
     categories.result
   }
+
 }

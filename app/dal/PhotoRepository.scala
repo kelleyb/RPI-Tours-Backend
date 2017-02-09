@@ -85,4 +85,6 @@ class PhotoRepository @Inject()(
   def list(): Future[Seq[Photo]] = db.run {
     photos.result
   }
+
+
 }

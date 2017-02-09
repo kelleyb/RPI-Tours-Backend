@@ -88,4 +88,6 @@ class TourRepository @Inject()(
   def list(): Future[Seq[Tour]] = db.run {
     tours.result
   }
+
+
 }
