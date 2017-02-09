@@ -33,7 +33,7 @@ These are the goals and milestones set for the Spring 2017 semester in RCOS:
 
 ## Contributing
 
-See the [CONTRIBUTING](CONTRIBUTING) file for some more information. We loosely
+See the [CONTRIBUTING](CONTRIBUTING.md) file for some more information. We loosely
 follow the [Official Scala Style Guide](http://docs.scala-lang.org/style/). 
 
 ## Running
