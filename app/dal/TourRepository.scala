@@ -89,5 +89,12 @@ class TourRepository @Inject()(
     tours.result
   }
 
+  /**
+   * Find tour with corresponding id
+   */
+  def findById(id: Long): Future[Tour] = db.run {
+    tours.filter(_.id === id).result.head
+  }
+
 
 }

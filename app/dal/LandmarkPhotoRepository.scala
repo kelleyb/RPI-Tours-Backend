@@ -83,5 +83,12 @@ class LandmarkPhotoRepository @Inject()(
     landmarkPhotos.result
   }
 
+  /**
+   * Find photo IDs with corresponding landmarkId
+   */
+  def findByLandmarkId(landmarkId: Long): Future[Seq[Long]] = db.run {
+    landmarkPhotos.filter(_.landmarkId === landmarkId).map(_.photoId).result
+  }
+
 
 }

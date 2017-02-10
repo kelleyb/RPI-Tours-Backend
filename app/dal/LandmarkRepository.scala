@@ -97,5 +97,11 @@ class LandmarkRepository @Inject()(
     landmarks.result
   }
 
+  /**
+   * Find landmark with corresponding id
+   */
+  def findById(id: Long): Future[Landmark] = db.run {
+    landmarks.filter(_.id === id).result.head
+  }
 
 }

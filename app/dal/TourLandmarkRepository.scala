@@ -90,5 +90,12 @@ class TourLandmarkRepository @Inject()(
     tourLandmarks.result
   }
 
+  /**
+   * Find landmark IDs with corresponding tourId
+   */
+  def findByTourId(id: Long): Future[Seq[Long]] = db.run {
+    tourLandmarks.filter(_.tourId === id).map(_.landmarkId).result
+  }
+
 
 }

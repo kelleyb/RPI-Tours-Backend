@@ -86,14 +86,14 @@ class TourCategoryRepository @Inject()(
   /**
    * Return all TourCategories with the corresponding tourId
    */
-  def findByTourId(id: Long): Future[Seq[TourCategory]] = db.run {
-    tourCategories.filter(_.tourId === id).result
+  def findByTourId(id: Long): Future[Seq[Long]] = db.run {
+    tourCategories.filter(_.tourId === id).map(_.categoryId).result
   }
 
   /**
    * Return all TourCategories with the corresponding categoryId
    */
-  def findByCategoryId(id: Long): Future[Seq[TourCategory]] = db.run {
-    tourCategories.filter(_.categoryId === id).result
+  def findByCategoryId(id: Long): Future[Seq[Long]] = db.run {
+    tourCategories.filter(_.categoryId === id).map(_.tourId).result
   }
 }

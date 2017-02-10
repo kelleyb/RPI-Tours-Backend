@@ -86,5 +86,12 @@ class PhotoRepository @Inject()(
     photos.result
   }
 
+  /**
+   * Find photo with corresponding id
+   */
+  def findById(id: Long): Future[Photo] = db.run {
+    photos.filter(_.id === id).result.head
+  }
+
 
 }

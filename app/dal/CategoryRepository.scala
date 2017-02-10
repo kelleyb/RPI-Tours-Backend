@@ -87,4 +87,11 @@ class CategoryRepository @Inject() (
     categories.result
   }
 
+  /**
+   * Find category with corresponding id
+   */
+  def findById(id: Long): Future[Category] = db.run {
+    categories.filter(_.id === id).result.head
+  }
+
 }

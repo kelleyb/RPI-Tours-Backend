@@ -52,7 +52,7 @@ class WaypointRepository @Inject()(
      * which is functionally the same.
      */
     def tourId = column[Long]("tour_id")
-    def ordering = column[Int]("touring")
+    def ordering = column[Int]("ordering")
 
     /**
      * This is the tables default "projection".
@@ -99,5 +99,12 @@ class WaypointRepository @Inject()(
    */
   def list(): Future[Seq[Waypoint]] = db.run {
     waypoints.result
+  }
+
+  /**
+   * Find waypoints with corresponding tourId
+   */
+  def findByTourId(id: Long): Future[Seq[Waypoint]] = db.run {
+    waypoints.filter(_.tourId === id).sortBy(_.ordering).result
   }
 }
