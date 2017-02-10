@@ -17,3 +17,5 @@ GET /api/v1/categories/:id/last_updated controllers.ApiController.getTimeCatLast
 
 # Map static resources from the /public folder to the /assets URL path
 GET /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)
+
+GET  /*path/  controllers.HomeController.untrail(path: String)

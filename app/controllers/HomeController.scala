@@ -26,4 +26,8 @@ class HomeController @Inject() extends Controller {
   def index = Action { implicit request =>
     Ok(views.html.index())
   }
+
+  def untrail(path: String) = Action { 
+    MovedPermanently("/" + path)
+  }
 }
