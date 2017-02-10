@@ -2,7 +2,11 @@ package models
 
 import play.api.libs.json._
 
-case class Category(id: Long, name: String, description: String)
+case class Category(
+  id: Long, 
+  name: String, 
+  description: String, 
+  lastUpdated: String)
 
 /**
  * Companion object for Category class. 

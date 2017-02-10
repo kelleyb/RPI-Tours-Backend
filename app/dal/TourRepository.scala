@@ -3,10 +3,13 @@ package dal
 import javax.inject.{ Inject, Singleton }
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
+import java.time.LocalDateTime
 
 import models.Tour
 
 import scala.concurrent.{ Future, ExecutionContext }
+import scala.util.{Success, Failure}
+
 
 /**
  * A repository for tours.
@@ -16,7 +19,9 @@ import scala.concurrent.{ Future, ExecutionContext }
  */
 @Singleton
 class TourRepository @Inject()(
-    dbConfigProvider: DatabaseConfigProvider)(
+    dbConfigProvider: DatabaseConfigProvider,
+    categories: CategoryRepository,
+    tourCategories: TourCategoryRepository)(
     implicit ec: ExecutionContext) {
   // We want the JdbcProfile for this provider
   private val dbConfig = dbConfigProvider.get[JdbcProfile]
@@ -44,12 +49,15 @@ class TourRepository @Inject()(
     /** The description column, can't be null */
     def description = column[String]("description")
 
+    /** The last time the tour was updated */
+    def lastUpdated = column[String]("last_updated")
+
     /**
      * This is the tables default "projection".
      *
      * It defines how the columns are converted to and from the Tour object.
      */
-    def * = (id, name, description) <> 
+    def * = (id, name, description, lastUpdated) <> 
       ((Tour.apply _).tupled, Tour.unapply)
   }
 
@@ -70,16 +78,16 @@ class TourRepository @Inject()(
       description: String): Future[Tour] = db.run {
     // We create a projection of just the main columns, since 
     // we're not inserting a value for the id column
-    (tours.map(t => (t.name, t.description))
+    (tours.map(t => (t.name, t.description, t.lastUpdated))
       // Now define it to return the id, because we want to know what id was 
       // generated for the tour
       returning tours.map(_.id)
       // And we define a transformation for the returned value, which combines 
       // our original parameters with the returned id
       into ((tour, id) => 
-        Tour(id, tour._1, tour._2))
+        Tour(id, tour._1, tour._2, tour._3))
     // And finally, insert the tour into the database
-    ) += (name, description)
+    ) += (name, description, LocalDateTime.now().toString.replace('T', ' '))
   }
 
   /**
@@ -96,5 +104,26 @@ class TourRepository @Inject()(
     tours.filter(_.id === id).result.head
   }
 
+  /**
+   * Update the given tour's timestamp
+   */
+  def updateTimestamp(id: Long) = {
+    // We want to also update any categories this tour is a part of
+    tourCategories.findByTourId(id) onComplete {
+      case Success(catIds) => catIds.map { catId =>
+        categories.updateTimestamp(catId)
+      }
+      case Failure(err) => println("An error occurred: " + err.getMessage)
+    }
 
+    db.run {
+      val tStamp = for {
+        t <- tours if t.id === id
+      } yield t.lastUpdated
+
+      // Update the timestamp, make sure it's in a consistent format
+      tStamp.update(LocalDateTime.now().toString.replace('T', ' '))
+
+    }
+  }
 }

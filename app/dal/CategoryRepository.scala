@@ -3,6 +3,7 @@ package dal
 import javax.inject.{ Inject, Singleton }
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
+import java.time.LocalDateTime
 
 import models.Category
 
@@ -44,12 +45,15 @@ class CategoryRepository @Inject() (
     /** The description column, can't be null */
     def description = column[String]("description")
 
+    /** The last time the category was updated */
+    def lastUpdated = column[String]("last_updated")
+
     /**
      * This is the tables default "projection".
      *
      * It defines how the columns are converted to and from the Category object.
      */
-    def * = (id, name, description) <> 
+    def * = (id, name, description, lastUpdated) <> 
       ((Category.apply _).tupled, Category.unapply)
   }
 
@@ -69,15 +73,15 @@ class CategoryRepository @Inject() (
     // We create a projection of just the main columns, since 
     // we're not inserting a value for the 
     // id column
-    (categories.map(c => (c.name, c.description))
+    (categories.map(c => (c.name, c.description, c.lastUpdated))
       // Now define it to return the id, because we want to know what id was 
       // generated for the category
       returning categories.map(_.id)
       // And we define a transformation for the returned value, which combines 
       // our original parameters with the returned id
-      into ((nameDesc, id) => Category(id, nameDesc._1, nameDesc._2))
+      into ((cat, id) => Category(id, cat._1, cat._2, cat._3))
     // And finally, insert the category into the database
-    ) += (name, description)
+    ) += (name, description, LocalDateTime.now().toString.replace('T', ' '))
   }
 
   /**
@@ -92,6 +96,19 @@ class CategoryRepository @Inject() (
    */
   def findById(id: Long): Future[Category] = db.run {
     categories.filter(_.id === id).result.head
+  }
+
+  /**
+   * Update the given categories' timestamp
+   */
+  def updateTimestamp(id: Long) = db.run {
+    val tStamp = for {
+      cat <- categories if cat.id === id
+    } yield cat.lastUpdated
+
+    // Update the timestamp, make sure it's in a consistent format
+    tStamp.update(LocalDateTime.now().toString.replace('T', ' '))
+
   }
 
 }

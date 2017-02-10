@@ -1,27 +1,29 @@
 # --- !Ups
 
 CREATE TABLE tours (
-    id bigint(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id bigint NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name varchar(255) NOT NULL,
     description varchar(10000) NOT NULL,
+    last_updated varchar(255) NOT NULL DEFAULT now()
 );
 
 CREATE TABLE waypoints (
-    id bigint(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id bigint NOT NULL PRIMARY KEY AUTO_INCREMENT,
     lat double precision NOT NULL,
     long double precision NOT NULL,
-    tour_id bigint(20) NOT NULL AUTO_INCREMENT,
-    ordering bigint(20) NOT NULL AUTO_INCREMENT
+    tour_id bigint NOT NULL AUTO_INCREMENT,
+    ordering bigint NOT NULL AUTO_INCREMENT
 );
 
 CREATE TABLE categories (
-    id bigint(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id bigint NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name varchar(255) NOT NULL,
-    description varchar(10000) NOT NULL
+    description varchar(10000) NOT NULL,
+    last_updated varchar(255) NOT NULL DEFAULT now()
 );
 
 CREATE TABLE landmarks (
-    id bigint(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id bigint NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name varchar(255) NOT NULL,
     description varchar(10000) NOT NULL,
     lat double precision NOT NULL,
@@ -29,26 +31,26 @@ CREATE TABLE landmarks (
 );
 
 CREATE TABLE photos (
-    id bigint(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id bigint NOT NULL PRIMARY KEY AUTO_INCREMENT,
     url varchar(1000) NOT NULL
 );
 
 -- mappings
 
 CREATE TABLE landmark_photos (
-    landmark_id bigint(20) NOT NULL,
-    photo_id bigint(20) NOT NULL
+    landmark_id bigint NOT NULL,
+    photo_id bigint NOT NULL
 );
 
 CREATE TABLE tour_categories (
-    tour_id bigint(20) NOT NULL,
-    category_id bigint(20) NOT NULL
+    tour_id bigint NOT NULL,
+    category_id bigint NOT NULL
 );
 
 CREATE TABLE tour_landmarks (
-    tour_id bigint(20) NOT NULL,
-    landmark_id bigint(20) NOT NULL,
-    ordering bigint(20) NOT NULL
+    tour_id bigint NOT NULL,
+    landmark_id bigint NOT NULL,
+    ordering bigint NOT NULL
 );
 
 -- Create a basic tour

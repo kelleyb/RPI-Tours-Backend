@@ -120,7 +120,7 @@ class ApiController @Inject()(
   def getCategory(id: Long) = Action.async { implicit request =>
     categories.findById(id).map { category =>
       Ok(Json.toJson(category).as[JsObject] +
-        ("availableTours" -> findNumToursForCategory(category.id)))
+        ("numAvailableTours" -> findNumToursForCategory(category.id)))
     }
   }
 
@@ -134,7 +134,7 @@ class ApiController @Inject()(
       case allCategories: Seq[Category] => Ok(Json.toJson {
         allCategories.map { category =>
           Json.toJson(category).as[JsObject] + 
-            ("availableTours" ->  findNumToursForCategory(category.id))
+            ("numAvailableTours" ->  findNumToursForCategory(category.id))
         }
       })
     }.recover { case t =>
@@ -152,6 +152,26 @@ class ApiController @Inject()(
         tourIds.map { tourId =>
           Await.result(tours.findById(tourId), 1 second)
         }))
+    }
+  }
+
+  /**
+   * GET /api/v1/tours/:id/last_updated
+   * Get the last time the selected tour was updated
+   */
+  def getTimeTourLastUpdated(id: Long) = Action.async { implicit request =>
+    tours.findById(id).map { tour =>
+      Ok(JsObject(Seq(("lastUpdated" -> JsString(tour.lastUpdated)))))
+    }
+  }
+
+  /**
+   * GET /api/v1/categories/:id/last_updated
+   * Get the last time the selected category was updated
+   */
+  def getTimeCatLastUpdated(id: Long) = Action.async { implicit request =>
+    categories.findById(id).map { cat =>
+      Ok(JsObject(Seq(("lastUpdated" -> JsString(cat.lastUpdated)))))
     }
   }
 }
