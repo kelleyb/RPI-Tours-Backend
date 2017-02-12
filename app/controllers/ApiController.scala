@@ -113,7 +113,7 @@ class ApiController @Inject()(
         ("content" -> allTours.map(t => findTourById(t.id)))
       ) ++ successCode)
     }.recover { case t => 
-      InternalServerError("An error occurred: " + t.getMessage)
+      InternalServerError(errMsg(t.getMessage))
     }
   }
 
