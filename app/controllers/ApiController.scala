@@ -33,6 +33,16 @@ class ApiController @Inject()(
   tourCategories: TourCategoryRepository,
   tourLandmarks: TourLandmarkRepository) extends Controller {
 
+  def successCode(): JsObject = JsObject(Seq(
+        ("status") -> JsString("success") 
+      )
+    )
+  def errMsg(msg: String): JsObject = JsObject(
+          Seq(
+            ("status" -> JsString("failure")),
+            ("error" -> JsString(msg))
+          )
+        )
 
   /**
    * Given a landmark ID, get the JSON for the photos for that given landmark.
@@ -69,8 +79,8 @@ class ApiController @Inject()(
    * Find the tour by its ID and return it along with landmark/waypoint data.
    */
   def findTourById(tourId: Long): JsValue = {
-    Await.result(tours.findById(tourId).map { tour =>
-      Json.toJson(tour).as[JsObject] + 
+    Await.result(tours.findById(tourId).map {
+      case Some(tour) => Json.toJson(tour).as[JsObject] +
         // Now that we have the actual tour objects, we can add waypoint and
         // landmark data. Waypoints must be in a specific order, landmarks
         // don't matter quite so much.
@@ -78,6 +88,8 @@ class ApiController @Inject()(
           Await.result(waypoints.findByTourId(tour.id), 1 second)
         }) +
         ("landmarks" -> Json.toJson(findLandmarksByTourId(tour.id)))
+        
+      case None => errMsg(s"could not find tour with ID ${tourId}")
     }, 1 second)
   }
 
@@ -97,9 +109,9 @@ class ApiController @Inject()(
    */
   def getTours = Action.async { implicit request =>
     tours.list.map {
-      case allTours: Seq[Tour] => Ok(Json.toJson {
-        allTours.map(t => findTourById(t.id))
-      })
+      case allTours: Seq[Tour] => Ok(Json.obj(
+        ("content" -> allTours.map(t => findTourById(t.id)))
+      ) ++ successCode)
     }.recover { case t => 
       InternalServerError("An error occurred: " + t.getMessage)
     }
@@ -110,7 +122,14 @@ class ApiController @Inject()(
    * Get the tour with given ID (includes landmark, photo, and waypoint info).
    */
   def getTour(id: Long) = Action.async { implicit request =>
-    tours.findById(id).map(t => Ok(findTourById(t.id)))
+    tours.findById(id)
+      .map {
+        case Some(tour) => Ok(
+          Json.obj("content" -> findTourById(tour.id)) ++
+          successCode
+        )
+        case None => NotFound(errMsg(s"Could not find tour with ID ${id}"))
+      }
   }
 
   /**
@@ -118,9 +137,12 @@ class ApiController @Inject()(
    * Get the category with given ID
    */
   def getCategory(id: Long) = Action.async { implicit request =>
-    categories.findById(id).map { category =>
-      Ok(Json.toJson(category).as[JsObject] +
-        ("numAvailableTours" -> findNumToursForCategory(category.id)))
+    categories.findById(id).map { 
+      case Some(category) => Ok(Json.obj(
+        "content" -> (Json.toJson(category).as[JsObject] +
+          ("numAvailableTours" -> findNumToursForCategory(category.id)))) ++
+        successCode)
+      case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
     }
   }
 
@@ -131,14 +153,12 @@ class ApiController @Inject()(
    */
   def getCategories = Action.async { implicit request =>
     categories.list.map {
-      case allCategories: Seq[Category] => Ok(Json.toJson {
-        allCategories.map { category =>
+      case allCategories: Seq[Category] => Ok(Json.obj( 
+        ("content" -> allCategories.map { category =>
           Json.toJson(category).as[JsObject] + 
             ("numAvailableTours" ->  findNumToursForCategory(category.id))
-        }
-      })
-    }.recover { case t =>
-      InternalServerError("An error occurred: " + t.getMessage)
+        })
+      ).as[JsObject] ++ successCode)
     }
   }
 
@@ -147,12 +167,17 @@ class ApiController @Inject()(
    * Get all the tours which belong to the given category.
    */
   def getToursForCategory(id: Long) = Action.async { implicit request =>
-    tourCategories.findByCategoryId(id).map { tourIds =>
-      Ok(Json.toJson(
-        tourIds.map { tourId =>
-          Await.result(tours.findById(tourId), 1 second)
-        }))
+    categories.findById(id).map {
+      case Some(_) => Await.result(
+        tourCategories.findByCategoryId(id).map { tourIds =>
+          Ok(Json.obj(
+            "content" -> tourIds.map { tourId =>
+              findTourById(tourId)
+            }).as[JsObject] ++ successCode)
+        }, 1 second)
+      case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
     }
+    
   }
 
   /**
@@ -160,8 +185,11 @@ class ApiController @Inject()(
    * Get the last time the selected tour was updated
    */
   def getTimeTourLastUpdated(id: Long) = Action.async { implicit request =>
-    tours.findById(id).map { tour =>
-      Ok(JsObject(Seq(("lastUpdated" -> JsString(tour.lastUpdated)))))
+    tours.findById(id).map {
+      case Some(tour) => Ok(Json.obj(
+        ("content" -> JsObject(Seq("lastUpdated" -> JsString(tour.lastUpdated))))
+      ) ++ successCode)
+      case None => NotFound(errMsg(s"Could not find tour with ID ${id}"))
     }
   }
 
@@ -170,8 +198,11 @@ class ApiController @Inject()(
    * Get the last time the selected category was updated
    */
   def getTimeCatLastUpdated(id: Long) = Action.async { implicit request =>
-    categories.findById(id).map { cat =>
-      Ok(JsObject(Seq(("lastUpdated" -> JsString(cat.lastUpdated)))))
+    categories.findById(id).map {
+      case Some(cat) => Ok(Json.obj(
+        ("content" -> JsObject(Seq("lastUpdated" -> JsString(cat.lastUpdated))))
+      ) ++ successCode)
+      case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
     }
   }
 }
