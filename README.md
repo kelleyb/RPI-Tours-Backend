@@ -36,6 +36,18 @@ These are the goals and milestones set for the Spring 2017 semester in RCOS:
 See the [CONTRIBUTING](CONTRIBUTING.md) file for some more information. We loosely
 follow the [Official Scala Style Guide](http://docs.scala-lang.org/style/). 
 
+There is a file in the root of the project named `pre-commit`. This file
+essentially tells git to run our tests before it will allow you to actually
+commit your changes. This takes a few seconds, but in my opinion it is well
+worth it to make sure we never commit broken code.
+
+To enable the pre-commit hook, my recommendation is to run the command 
+`ln -s ../../pre-commit ./pre-commit` from the directory `.git/hooks/`. If 
+you're not aware, this makes a link to the pre-commit file in the root directory
+from a new file in the `.git/hooks` directory. So if the pre-commit file changes
+in the future, it should automatically be updated in your hooks directory. Make
+sure the pre-commit file is executable.
+
 ## Running
 
 If you want to try running the site on your computer, you'll need 
