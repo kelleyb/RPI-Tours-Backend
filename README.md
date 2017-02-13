@@ -1,4 +1,4 @@
-# RPI Tours Backend
+# RPI Tours Backend [![Build Status](https://travis-ci.org/kelleyb/RPI-Tours-Backend.svg?branch=master)](https://travis-ci.org/kelleyb/RPI-Tours-Backend)
 
 ## About
 
