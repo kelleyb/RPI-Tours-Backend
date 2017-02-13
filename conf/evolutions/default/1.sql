@@ -58,6 +58,11 @@ INSERT INTO tours (name, description)
 VALUES ('Freshman Residence Halls', 
     'Hey! This is a tour of the freshman residence halls!');
 
+-- Make a second tour to make sure we're implementing things correctly
+INSERT INTO tours (name, description) 
+VALUES ('Second Tour', 
+    'This tour shouldn''t show up if you''re getting tours for a specific category! It''s unmapped!');
+
 -- Make a category this tour will be a part of
 INSERT INTO categories (name, description) 
 VALUES ('General Tours', 
