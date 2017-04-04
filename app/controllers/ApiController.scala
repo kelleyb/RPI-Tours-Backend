@@ -10,8 +10,7 @@ import play.api.mvc.Results._
 import models._
 import dal._
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.forkjoin._
 import scala.language.postfixOps
 
@@ -47,14 +46,16 @@ class ApiController @Inject()(
   /**
    * Given a landmark ID, get the JSON for the photos for that given landmark.
    */
-  def findPhotosByLandmarkId(landmarkId: Long): JsValue = {
-    Json.toJson(Await.result({
-      landmarkPhotos.findByLandmarkId(landmarkId).map { photoIds =>
+  def findPhotosByLandmarkId(landmarkId: Long): Future[JsValue] = {
+    landmarkPhotos.findByLandmarkId(landmarkId).flatMap { photoIds =>
+      Future.sequence {
         photoIds.map { photoId =>
-          Await.result(photos.findById(photoId), 1 second)
+          photos.findById(photoId)
         }
       }
-    }, 1 second))
+    }.map { lp =>
+      Json.toJson(lp)
+    }
   }
 
   /**
@@ -62,44 +63,50 @@ class ApiController @Inject()(
    * Unfortunately, we need to go through a secondary table for this. Not too
    * bad, though.
    */
-  def findLandmarksByTourId(tourId: Long): JsValue = {
-    Json.toJson(Await.result({
-      tourLandmarks.findByTourId(tourId).map { landmarkIds =>
+  def findLandmarksByTourId(tourId: Long): Future[JsValue] = {
+    tourLandmarks.findByTourId(tourId).flatMap { landmarkIds =>
+      Future.sequence {
         landmarkIds.map { landmarkId =>
-          Await.result(landmarks.findById(landmarkId).map { landmark =>
-            Json.toJson(landmark).as[JsObject] + 
-              ("photos" -> findPhotosByLandmarkId(landmarkId))
-          }, 1 second)
+          landmarks.findById(landmarkId).flatMap { landmark =>
+            findPhotosByLandmarkId(landmarkId).map { photos =>
+              Json.toJson(landmark).as[JsObject] + 
+                ("photos" -> Json.toJson(photos))
+            }
+          }
         }
+      }.map { tl =>
+        Json.toJson(tl)
       }
-    }, 1 second))
+    }
   }
 
   /**
    * Find the tour by its ID and return it along with landmark/waypoint data.
    */
-  def findTourById(tourId: Long): JsValue = {
-    Await.result(tours.findById(tourId).map {
-      case Some(tour) => Json.toJson(tour).as[JsObject] +
-        // Now that we have the actual tour objects, we can add waypoint and
-        // landmark data. Waypoints must be in a specific order, landmarks
-        // don't matter quite so much.
-        ("waypoints" -> Json.toJson {
-          Await.result(waypoints.findByTourId(tour.id), 1 second)
-        }) +
-        ("landmarks" -> Json.toJson(findLandmarksByTourId(tour.id)))
-        
-      case None => errMsg(s"could not find tour with ID ${tourId}")
-    }, 1 second)
+  def findTourById(tourId: Long): Future[JsValue] = {
+    tours.findById(tourId).flatMap {
+      case Some(tour) => 
+        findLandmarksByTourId(tourId).flatMap { currLandmarks =>
+          waypoints.findByTourId(tourId).map { wp =>
+            Json.toJson(tour).as[JsObject] +
+            // Now that we have the actual tour objects, we can add waypoint and
+            // landmark data. Waypoints must be in a specific order, landmarks
+            // don't matter quite so much.
+            ("waypoints" -> Json.toJson(wp)) +
+            ("landmarks" -> currLandmarks)
+          }
+        }
+      case None => Future(errMsg(s"could not find tour with ID ${tourId}"))
+    }
   }
 
   /**
    * Given a category ID, find how many tours that category has.
    */
-  def findNumToursForCategory(categoryId: Long): JsValue = {
-    Json.toJson(Await.result({
-      tourCategories.findByCategoryId(categoryId).map(_.length)
-    }, 1 second))
+  def findNumToursForCategory(categoryId: Long): Future[JsValue] = {
+    tourCategories.findByCategoryId(categoryId).map(_.length).map { n =>
+      Json.toJson(n)
+    }
   }
 
 
@@ -108,12 +115,13 @@ class ApiController @Inject()(
    * GET all the tours in the database.
    */
   def getTours = Action.async { implicit request =>
-    tours.list.map {
-      case allTours: Seq[Tour] => Ok(Json.obj(
-        ("content" -> allTours.map(t => findTourById(t.id)))
-      ) ++ successCode)
-    }.recover { case t => 
-      InternalServerError(errMsg(t.getMessage))
+    tours.list.flatMap {
+      case allTours: Seq[Tour] => 
+        Future.sequence(allTours.map(t => findTourById(t.id))).map { tourJS =>
+          Ok {
+            Json.obj("content" -> tourJS) ++ successCode
+          }
+        }
     }
   }
 
@@ -123,12 +131,17 @@ class ApiController @Inject()(
    */
   def getTour(id: Long) = Action.async { implicit request =>
     tours.findById(id)
-      .map {
-        case Some(tour) => Ok(
-          Json.obj("content" -> findTourById(tour.id)) ++
-          successCode
-        )
-        case None => NotFound(errMsg(s"Could not find tour with ID ${id}"))
+      .flatMap {
+        case Some(tour) => 
+          findTourById(tour.id).map { t =>
+            Ok {
+              Json.obj("content" -> t) ++
+              successCode
+            }
+          }
+        case None => Future {
+          NotFound(errMsg(s"Could not find tour with ID ${id}"))
+        }
       }
   }
 
@@ -137,12 +150,17 @@ class ApiController @Inject()(
    * Get the category with given ID
    */
   def getCategory(id: Long) = Action.async { implicit request =>
-    categories.findById(id).map { 
-      case Some(category) => Ok(Json.obj(
-        "content" -> (Json.toJson(category).as[JsObject] +
-          ("numAvailableTours" -> findNumToursForCategory(category.id)))) ++
-        successCode)
-      case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
+    categories.findById(id).flatMap { 
+      case Some(category) => 
+        findNumToursForCategory(category.id).map { numTours =>
+          Ok(Json.obj("content" -> (Json.toJson(category).as[JsObject] +
+              ("numAvailableTours" -> numTours))) ++
+            successCode)
+        }
+      
+      case None => Future {
+        NotFound(errMsg(s"Could not find category with ID ${id}"))
+      }
     }
   }
 
@@ -152,13 +170,19 @@ class ApiController @Inject()(
    * available within that category.
    */
   def getCategories = Action.async { implicit request =>
-    categories.list.map {
-      case allCategories: Seq[Category] => Ok(Json.obj( 
-        ("content" -> allCategories.map { category =>
-          Json.toJson(category).as[JsObject] + 
-            ("numAvailableTours" ->  findNumToursForCategory(category.id))
-        })
-      ).as[JsObject] ++ successCode)
+    categories.list.flatMap {
+      case allCategories: Seq[Category] => Future.sequence {
+        allCategories.map { category =>
+          findNumToursForCategory(category.id).map { numTours =>
+            Json.toJson(category).as[JsObject] ++
+            Json.obj("numAvailableTours" ->  numTours)
+          }
+        }
+      }
+    }.map { c =>
+      Ok {
+        Json.obj("content" -> Json.toJson(c)) ++ successCode
+      }
     }
   }
 
@@ -167,15 +191,21 @@ class ApiController @Inject()(
    * Get all the tours which belong to the given category.
    */
   def getToursForCategory(id: Long) = Action.async { implicit request =>
-    categories.findById(id).map {
-      case Some(_) => Await.result(
-        tourCategories.findByCategoryId(id).map { tourIds =>
-          Ok(Json.obj(
-            "content" -> tourIds.map { tourId =>
+    categories.findById(id).flatMap {
+      case Some(_) =>
+        tourCategories.findByCategoryId(id).flatMap { tourIds =>
+          Future.sequence {
+            tourIds.map { tourId =>
               findTourById(tourId)
-            }).as[JsObject] ++ successCode)
-        }, 1 second)
-      case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
+            }
+          }.map { tcs =>
+            Ok(Json.obj("content" -> tcs) ++ successCode)
+          }
+          
+        }
+      case None => Future {
+        NotFound(errMsg(s"Could not find category with ID ${id}"))
+      }
     }
     
   }
