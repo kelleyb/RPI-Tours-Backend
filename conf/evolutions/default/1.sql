@@ -73,7 +73,7 @@ INSERT INTO tour_categories (tour_id, category_id) VALUES (1, 1);
 
 -- Make a few waypoints
 INSERT INTO waypoints (lat, long, tour_id, ordering) 
-    VALUES (42.73064179, 73.67553949, 1, 0);
+    VALUES (42.73064179, -73.67553949, 1, 0);
 
 INSERT INTO waypoints (lat, long, tour_id, ordering) 
     VALUES (42.72898, -73.67414, 1, 1);

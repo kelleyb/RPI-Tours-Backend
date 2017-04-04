@@ -289,7 +289,7 @@ object Constants {
           {
             "id":1,
             "lat":42.73064179,
-            "long":73.67553949,
+            "long":-73.67553949,
             "tourId":1,
             "ordering":0
           },
@@ -390,7 +390,7 @@ object Constants {
           {
             "id":1,
             "lat":42.73064179,
-            "long":73.67553949,
+            "long":-73.67553949,
             "tourId":1,
             "ordering":0
           },
