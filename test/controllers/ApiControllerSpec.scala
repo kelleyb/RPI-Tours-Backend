@@ -326,8 +326,8 @@ object Constants {
             "id":2,
             "name":"Barton Residence Hall",
             "description":"Barton was first opened in Fall 2000 and in addition to being our newest residence hall, it also has the distinction of being the campus' only freshman only residence hall.",
-            "lat":42.73064179,
-            "long":-73.67553949,
+            "lat":42.72898,
+            "long":-73.67414,
             "photos":[
               {
                 "id":2,
@@ -339,8 +339,8 @@ object Constants {
             "id":3,
             "name":"Commons Dining Hall",
             "description":"Situated at the center of the first-year residence halls, the Commons offers several dining stations. These include the popular Asian Pacifica, a savory grill program, pasta prepared to order, a deli and Theme Cuisine.",
-            "lat":42.73064179,
-            "long":-73.67553949,
+            "lat":42.72848,
+            "long":-73.67455,
             "photos":[
               {
                 "id":3,
@@ -427,8 +427,8 @@ object Constants {
             "id":2,
             "name":"Barton Residence Hall",
             "description":"Barton was first opened in Fall 2000 and in addition to being our newest residence hall, it also has the distinction of being the campus' only freshman only residence hall.",
-            "lat":42.73064179,
-            "long":-73.67553949,
+            "lat":42.72898,
+            "long":-73.67414,
             "photos":[
               {
                 "id":2,
@@ -440,8 +440,8 @@ object Constants {
             "id":3,
             "name":"Commons Dining Hall",
             "description":"Situated at the center of the first-year residence halls, the Commons offers several dining stations. These include the popular Asian Pacifica, a savory grill program, pasta prepared to order, a deli and Theme Cuisine.",
-            "lat":42.73064179,
-            "long":-73.67553949,
+            "lat":42.72848,
+            "long":-73.67455,
             "photos":[
               {
                 "id":3,

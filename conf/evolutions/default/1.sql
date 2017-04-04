@@ -88,12 +88,12 @@ INSERT INTO landmarks (name, description, lat, long)
 INSERT INTO landmarks (name, description, lat, long) 
     VALUES ('Barton Residence Hall', 
         'Barton was first opened in Fall 2000 and in addition to being our newest residence hall, it also has the distinction of being the campus'' only freshman only residence hall.', 
-        42.73064179, -73.67553949);
+        42.72898, -73.67414);
 
 INSERT INTO landmarks (name, description, lat, long) 
     VALUES ('Commons Dining Hall', 
         'Situated at the center of the first-year residence halls, the Commons offers several dining stations. These include the popular Asian Pacifica, a savory grill program, pasta prepared to order, a deli and Theme Cuisine.', 
-        42.73064179, -73.67553949);
+        42.72848, -73.67455);
 
 -- Map the landmarks to the example tour
 INSERT INTO tour_landmarks (tour_id, landmark_id, ordering)
