@@ -47,15 +47,14 @@ class ApiController @Inject()(
    * Given a landmark ID, get the JSON for the photos for that given landmark.
    */
   def findPhotosByLandmarkId(landmarkId: Long): Future[JsValue] = {
-    landmarkPhotos.findByLandmarkId(landmarkId).flatMap { photoIds =>
-      Future.sequence {
-        photoIds.map { photoId =>
-          photos.findById(photoId)
+    for {
+      photoIds <- landmarkPhotos.findByLandmarkId(landmarkId)
+      lp <- Future.sequence {
+          photoIds.map { photoId =>
+            photos.findById(photoId)
+          }
         }
-      }
-    }.map { lp =>
-      Json.toJson(lp)
-    }
+    } yield (Json.toJson(lp))
   }
 
   /**
@@ -64,20 +63,20 @@ class ApiController @Inject()(
    * bad, though.
    */
   def findLandmarksByTourId(tourId: Long): Future[JsValue] = {
-    tourLandmarks.findByTourId(tourId).flatMap { landmarkIds =>
-      Future.sequence {
-        landmarkIds.map { landmarkId =>
-          landmarks.findById(landmarkId).flatMap { landmark =>
-            findPhotosByLandmarkId(landmarkId).map { photos =>
+    for {
+      landmarkIds <- tourLandmarks.findByTourId(tourId)
+      ls <- Future.sequence {
+          landmarkIds.map { landmarkId =>
+            for {
+              landmark <- landmarks.findById(landmarkId)
+              photos <- findPhotosByLandmarkId(landmarkId)
+            } yield {
               Json.toJson(landmark).as[JsObject] + 
                 ("photos" -> Json.toJson(photos))
             }
           }
         }
-      }.map { tl =>
-        Json.toJson(tl)
-      }
-    }
+    } yield (Json.toJson(ls))
   }
 
   /**
