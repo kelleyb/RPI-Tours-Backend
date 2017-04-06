@@ -1,0 +1,306 @@
+swagger: '2.0'
+info:
+  title: RPI Tours API
+  description: Find your way through campus with the RPI Tours app
+  version: "0.1.0"
+# the domain of the service
+host: default-environment.pvwkn4dv9r.us-east-1.elasticbeanstalk.com
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /api/v1
+produces:
+  - application/json
+paths:
+  /tours:
+    get:
+      summary: Tours
+      description: |
+        The tours endpoint simply returns an array of all the tours in
+        the database. This includes all information such as landmarks,
+        waypoints, etc.
+      tags:
+        - Tours
+      responses:
+        200:
+          description: An array of products
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              content:
+                type: array
+                items:
+                  $ref: '#/definitions/Tour'
+
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tours/{id}:
+    get:
+      summary: Single Tour
+      parameters:
+        - name: id
+          in: path
+          description: ID of the tour you want.
+          required: true
+          type: integer
+      tags:
+        - Tours
+      responses:
+        200:
+          description: The tour with the given ID
+          schema:
+            type: object
+            properties:
+              content:
+                $ref: '#/definitions/Tour'
+              status:
+                type: string
+                description: Should be "success" when successful.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /tours/{id}/last_updated:
+    get:
+      summary: Price Estimates
+      parameters:
+        - name: id
+          in: path
+          description: ID of the tour you want.
+          required: true
+          type: integer
+      tags:
+        - Tours
+        - LastUpdated
+      responses:
+        200:
+          description: The time the last object was updated.
+          schema:
+            type: object
+            properties:
+              content:
+                $ref: '#/definitions/TimeUpdated'
+              status:
+                type: string
+                description: Should be "success" when successful.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /categories:
+    get:
+      summary: Categories
+      description: Get all the categories from the database.
+      tags:
+        - Categories
+      responses:
+        200:
+          description: All the categories in the DB
+          schema:
+            type: object
+            properties:
+              content:
+                type: array
+                items:
+                  $ref: '#/definitions/Category'
+              status:
+                type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /categories/{id}:
+    get:
+      summary: Single category
+      parameters:
+        - name: id
+          in: path
+          description: ID of the category you want.
+          required: true
+          type: integer
+      tags:
+        - Categories
+      responses:
+        200:
+          description: The category with the given ID
+          schema:
+            type: object
+            properties:
+              content:
+                $ref: '#/definitions/Category'
+              status:
+                type: string
+                description: Should be "success" when successful.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /categories/{id}/tours:
+    get:
+      summary: All the tours for the given category
+      parameters:
+        - name: id
+          in: path
+          description: ID of the category you want the tours for.
+          required: true
+          type: integer
+      tags:
+        - Categories
+        - Tours
+      responses:
+        200:
+          description: The tours for the category specified.
+          schema:
+            type: object
+            properties:
+              content:
+                type: array
+                items:
+                  $ref: '#/definitions/Tour'
+              status:
+                type: string
+                description: Should be "success" when successful.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /categories/{id}/last_updated:
+    get:
+      summary: Last time the category was updated.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the category you want.
+          required: true
+          type: integer
+      tags:
+        - Categories
+        - LastUpdated
+      responses:
+        200:
+          description: The time the last object was updated.
+          schema:
+            type: object
+            properties:
+              content:
+                $ref: '#/definitions/TimeUpdated'
+              status:
+                type: string
+                description: Should be "success" when successful.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  Photo:
+    type: object
+    properties:
+      id:
+        type: integer
+      url:
+        type: string
+
+  Waypoint:
+    type: object
+    properties:
+      id:
+        type: integer
+      lat:
+        type: number
+      long:
+        type: number
+      tourId:
+        type: integer
+      ordering:
+        type: integer
+
+
+  Tour:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+        description: Description of product.
+      description:
+        type: string
+        description: Display name of product.
+      waypoints:
+        type: array
+        items:
+          $ref: '#/definitions/Waypoint'
+        description: Capacity of product. For example, 4 people.
+      landmarks:
+        type: array
+        items:
+          $ref: '#/definitions/Landmark'
+        description: Image URL representing the product.
+      lastUpdated:
+        type: string
+        description: |
+          The date and time the tour was last updated.
+  Landmark:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      description:
+        type: string
+      lat:
+        type: number
+        format: double
+      long:
+        type: number
+        format: double
+      photos:
+        type: array
+        items:
+          $ref: '#/definitions/Photo'
+  Category:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      description:
+        type: string
+      numAvailableTours:
+        type: integer
+      lastUpdated:
+        type: string
+        description: |
+          The date and time the tour was last updated.
+  TimeUpdated:
+    type: object
+    properties:
+      lastUpdated:
+        type: string
+        description:
+          This is the time the object in question was last updated.
+          This should be in the format "2017-02-10 03:40:48.674".
+          This format might change later on, depending on the
+          database datetime format.
+  Error:
+    type: object
+    properties:
+      status:
+        type: string
+        description:
+          Should be "failure"
+      error:
+        type: string
