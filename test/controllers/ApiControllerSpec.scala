@@ -270,6 +270,28 @@ class ApiControllerSpec extends PlaySpec {
       ) mustBe Constants.lastUpdatedJson
     }
   }
+
+  "GET /api/v1/categories_last_updated" should {
+    "return valid JSON, succeed" in {
+      val updated = apiController.getTimeAllCatsLastUpdated.apply(FakeRequest())
+
+      status(updated) mustBe OK
+      contentType(updated) mustBe Some("application/json")
+      (contentAsJson(updated) \ "status").as[String] mustBe "success"
+      contentAsJson(updated).as[JsObject].keys.contains("content") mustBe true
+    }
+
+    "match the sample JSON" in {
+      val updated = apiController.getTimeAllCatsLastUpdated.apply(FakeRequest())
+
+      status(updated) mustBe OK
+      contentType(updated) mustBe Some("application/json")
+      Json.parse(
+        // replace any instances of a DateTime format with "time"
+        Constants.DateTime.replaceAllIn(contentAsString(updated), "time")
+      ) mustBe Constants.catsLastUpdatedJson
+    }
+  }
 }
 
 
@@ -374,6 +396,16 @@ object Constants {
         "description":"This section consists of four athletic tours that go around campus!",
         "lastUpdated":"time",
         "numAvailableTours":1
+      }
+    ],
+    "status":"success"
+  }""")
+
+  val catsLastUpdatedJson = Json.parse("""{
+    "content":[
+      {
+        "category_id":1,
+        "last_updated":"time"
       }
     ],
     "status":"success"

@@ -234,4 +234,20 @@ class ApiController @Inject()(
       case None => NotFound(errMsg(s"Could not find category with ID ${id}"))
     }
   }
+
+  /**
+   * GET /api/v1/categories_last_updated 
+   * Get the time each category was last updated
+   */
+  def getTimeAllCatsLastUpdated() = Action.async { implicit request =>
+    categories.list.map { allCategories =>
+      Ok {
+        Json.obj(("content" -> Json.toJson{
+            allCategories.map { cat =>
+            Json.obj(("category_id" -> cat.id), ("last_updated" -> cat.lastUpdated))
+          }
+        })) ++ successCode
+      }
+    }
+  }
 }

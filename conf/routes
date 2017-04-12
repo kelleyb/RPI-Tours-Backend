@@ -13,9 +13,10 @@ GET /api/v1/categories                  controllers.ApiController.getCategories
 GET /api/v1/categories/:id              controllers.ApiController.getCategory(id:Long)
 GET /api/v1/categories/:id/tours        controllers.ApiController.getToursForCategory(id: Long)
 GET /api/v1/tours/:id/last_updated      controllers.ApiController.getTimeTourLastUpdated(id: Long)
+GET /api/v1/categories_last_updated     controllers.ApiController.getTimeAllCatsLastUpdated
 GET /api/v1/categories/:id/last_updated controllers.ApiController.getTimeCatLastUpdated(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)
 
-GET  /*path/  controllers.HomeController.untrail(path: String)
+GET  /*path/                            controllers.HomeController.untrail(path: String)
