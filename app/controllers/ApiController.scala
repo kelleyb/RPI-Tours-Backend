@@ -206,7 +206,24 @@ class ApiController @Inject()(
         NotFound(errMsg(s"Could not find category with ID ${id}"))
       }
     }
-    
+  }
+
+  /**
+   * GET /api/v1/categories/:id/tour_info 
+   * Get the basic tour info for the category,
+   */
+  def getTourInfoForCategory(id: Long) = Action.async { implicit request =>
+    tourCategories.findByCategoryId(id).flatMap { tourIds =>
+      Future.sequence { 
+        tourIds.map { tourId =>
+          tours.findById(tourId)
+        }
+      }.map { tours =>
+        Ok {
+          Json.obj("content" -> Json.toJson(tours)) ++ successCode
+        }
+      }
+    }
   }
 
   /**
